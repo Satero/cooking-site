@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Page } from '../components/Page'
-import { useStore } from '../store'
+import { useStore } from '../useStore'
 import { emptyData, exportJSON, importJSON, todayISO } from '../storage'
 
 export function SettingsPage() {

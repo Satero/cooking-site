@@ -28,7 +28,7 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 ## Milestones
 
 - [x] **M0 — Scaffold**: Vite/React/TS, nav + routing, shared types, versioned storage + store context, Settings (export / import / reset), docs, first push.
-- [ ] **M1 — Recipes**: list + detail, create / edit / delete, dynamic ingredient rows, ordered steps with reorder, tags, source URL, servings.
+- [x] **M1 — Recipes**: list + detail, create / edit / delete, dynamic ingredient rows, ordered steps with reorder, tags, source URL, servings.
 - [ ] **M2 — Learnings**: dated learnings per recipe or general; Learnings page (filterable) and shown on recipe detail.
 - [ ] **M3 — Schedule**: week view (7 days × 3 slots), multiple dishes per slot, servings override, week navigation.
 - [ ] **M4 — Shopping**: derived list for a date range, merged + scaled quantities, persistent checkboxes, "needed by" hint, Copy-list button.
@@ -45,6 +45,16 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - `src/store.tsx` — `StoreProvider` holds one `AppData` in React state and saves on every change; `useStore()` exposes `data`, `update(fn)`, `replace(next)`. Feature-specific helpers get layered on per milestone.
 - Six placeholder pages, `Nav`, `Page` wrapper, base stylesheet with tokens.
 - Settings page is fully functional: export downloads a dated JSON file, import validates the envelope and confirms before replacing, reset confirms before wiping.
+
+### M1 — Recipes (2026-09-21)
+
+- Routes: `/recipes` (list + search), `/recipes/new`, `/recipes/:id` (detail), `/recipes/:id/edit`. One `RecipeForm` component serves both new and edit, keyed by the route param so React doesn't reuse form state between them.
+- `src/data/recipes.ts` — pure helpers over `AppData` (`createRecipe`, `updateRecipe`, `deleteRecipe`, `searchRecipes`) plus quantity parsing/formatting. Pages call `update(d => updateRecipe(d, id, input))`. This pattern (pure data helpers in `src/data/`, thin pages) is the convention for every later milestone.
+- **Deleting a recipe cascades** to its learnings and schedule entries; the confirm dialog says how many will go.
+- **Quantities**: stored as numbers. Form accepts `2`, `1.5`, `1/2`, `1 1/2`, and unicode `½`; display renders `1½`; the edit form renders ASCII `1 1/2` so it round-trips through the parser. Caught a bug during testing where the form showed `1½` but the parser rejected it — now both directions are covered.
+- Search matches recipe name, tags, or ingredient names.
+- Form state is all strings while editing and parsed/validated on submit; blank ingredient and step rows are dropped, so the "always one empty row" UX doesn't leak into stored data.
+- Split `useStore` and `StoreContext` out of `store.tsx` — oxlint's Fast Refresh rule wants component files to export only components.
 
 ## v2 ideas
 
