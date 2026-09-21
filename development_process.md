@@ -23,6 +23,7 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 | Cooking step checkboxes | `sessionStorage` (reset when the tab closes) | A fresh cook shouldn't inherit last week's checkmarks. |
 | Learnings | Many per recipe, each dated; plus "general" learnings (`recipeId: null`) shown on every Cooking view | General learnings (e.g. knife technique) apply regardless of dish. |
 | Schedule | Per meal slot (breakfast / lunch / dinner), multiple dishes per slot, optional servings override | A meal is usually a main + sides. Override scales Shopping quantities. |
+| Household default servings | `settings.defaultServings`, set on the Schedule page ("Cooking for N people"). Every schedule entry uses it unless it has its own override. | Added after M3: entering the same servings on every entry was tedious. Changing the default retroactively applies to entries without an override — that's the point of a default. |
 | Backup | JSON export / import in Settings, versioned envelope with a `migrate()` hook | `localStorage` can be wiped by the browser; schema version lets old backups be upgraded. |
 
 ## Milestones
@@ -31,7 +32,7 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - [x] **M1 — Recipes**: list + detail, create / edit / delete, dynamic ingredient rows, ordered steps with reorder, tags, source URL, servings.
 - [x] **M2 — Learnings**: dated learnings per recipe or general; Learnings page (filterable) and shown on recipe detail.
 - [x] **M3 — Schedule**: week view (7 days × 3 slots), multiple dishes per slot, servings override, week navigation.
-- [ ] **M4 — Shopping**: derived list for a date range, merged + scaled quantities, persistent checkboxes, "needed by" hint, Copy-list button.
+- [x] **M4 — Shopping**: derived list for a date range, merged + scaled quantities, persistent checkboxes, "needed by" hint, Copy-list button.
 - [ ] **M5 — Cooking**: today's dishes by default or pick any recipe; scaled ingredients, step checkboxes, general + recipe learnings.
 - [ ] **M6 — Polish**: sample data, empty states, README update.
 
@@ -73,6 +74,21 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - `src/data/dates.ts` — ISO-string date math in local time (`addDays`, `startOfWeek`, `dateRange`, labels). Builds `Date` from parts rather than parsing `"YYYY-MM-DD"`, which JS treats as UTC and shifts by a day in US timezones.
 - `src/data/schedule.ts` — `addEntry` / `setServings` / `removeEntry` / `entriesFor` / `entriesInRange`. The last one is what Shopping (M4) will use.
 - The schedule page uses a wider max-width (`Page wide`) than the others; seven columns didn't fit comfortably in 960px.
+
+### M3.5 — Household default servings (2026-09-21)
+
+- Added `Settings { defaultServings }` to `AppData`, schema bumped to **v2**. `migrate()` already fills missing top-level keys from `emptyData()`, so v1 backups import cleanly.
+- `effectiveServings(entry, settings)` = `entry.servingsOverride ?? settings.defaultServings`. The Schedule pill and the Shopping scale factor both go through it.
+- The "override equal to default is stored as nothing" rule now compares against the household default, not the recipe's own `servings`. A recipe's `servings` is only used as the denominator when scaling.
+
+### M4 — Shopping (2026-09-21)
+
+- `/shopping` derives its list from `entriesInRange()` over a window. **From** defaults to today and isn't stored unless changed, so the list rolls forward on its own each day; **to** is stored as a day count (`rangeDays`). A "Reset to next 7 days" link appears once you've moved the start.
+- `src/data/shopping.ts` — `buildShoppingList()` walks every scheduled entry in the window, scales each ingredient by `effectiveServings / recipe.servings`, and merges by `itemKey` = lowercased `name|unit`. Same name with different units stays separate (cup vs tbsp of soy sauce) — no unit conversion, by design.
+- Ingredients without a quantity: the merged line still shows any quantities from other recipes, with a "+" suffix and a footnote. Better than silently dropping or inventing a number.
+- Each line shows which recipes need it and how many times (`Chicken Adobo ×2`).
+- **Checked items persist** in `shopping.checked` as item keys. Keys not in the current list are pruned on the next toggle so stale checks from old weeks don't pile up. "Uncheck all" resets.
+- **Copy remaining** puts the unchecked lines on the clipboard as a `- item` list — the bridge to a phone until v2. Falls back to a `prompt()` if the Clipboard API is unavailable.
 
 ## Future improvements (v1.x)
 

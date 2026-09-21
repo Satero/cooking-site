@@ -41,7 +41,7 @@ export type ScheduleEntry = {
   date: DateISO
   slot: MealSlot
   recipeId: ID
-  /** If set, scales ingredient quantities relative to recipe.servings. */
+  /** Servings for this meal. Unset = settings.defaultServings. Scales ingredient quantities relative to recipe.servings. */
   servingsOverride?: number
 }
 
@@ -54,10 +54,16 @@ export type ShoppingState = {
   checked: string[]
 }
 
+export type Settings = {
+  /** How many people you cook for. Schedule entries use this unless they set servingsOverride. */
+  defaultServings: number
+}
+
 /** Everything persisted to localStorage. Bump SCHEMA_VERSION when this shape changes. */
 export type AppData = {
   recipes: Recipe[]
   learnings: Learning[]
   schedule: ScheduleEntry[]
   shopping: ShoppingState
+  settings: Settings
 }

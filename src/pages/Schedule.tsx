@@ -5,14 +5,14 @@ import { useStore } from '../useStore'
 import { todayISO } from '../storage'
 import { MEAL_SLOTS, type DateISO, type MealSlot } from '../types'
 import { addDays, dateRange, rangeLabel, shortDate, startOfWeek } from '../data/dates'
-import { addEntry, entriesFor, removeEntry, setServings } from '../data/schedule'
+import { addEntry, effectiveServings, entriesFor, removeEntry, setDefaultServings, setServings } from '../data/schedule'
 import { findRecipe } from '../data/recipes'
 
 const SLOT_LABEL: Record<MealSlot, string> = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 const WEEKDAY_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 export function SchedulePage() {
-  const { data } = useStore()
+  const { data, update } = useStore()
   const today = todayISO()
   const [weekStart, setWeekStart] = useState<DateISO>(() => startOfWeek(today))
   const days = dateRange(weekStart, 7)
@@ -28,6 +28,22 @@ export function SchedulePage() {
           →
         </button>
         <strong className="week-label">{rangeLabel(weekStart, days[6])}</strong>
+        <span className="grow" />
+        <label className="row people">
+          Cooking for
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={data.settings.defaultServings}
+            onChange={(e) => {
+              const n = Number(e.target.value)
+              if (Number.isInteger(n) && n >= 1) update((d) => setDefaultServings(d, n))
+            }}
+            className="narrow"
+          />
+          people
+        </label>
       </div>
 
       {data.recipes.length === 0 && (
@@ -102,7 +118,7 @@ function SlotCell({ date, slot, isToday }: { date: DateISO; slot: MealSlot; isTo
               onClick={() => setEditingId(e.id)}
               title="Change servings"
             >
-              {e.servingsOverride ?? recipe.servings}
+              {effectiveServings(e, data.settings)}
               {e.servingsOverride !== undefined && '*'}
             </button>
             <button
@@ -148,15 +164,15 @@ function EntryEditor({ recipeId: initialRecipe, servings: initialServings, lockR
   const recipes = [...data.recipes].sort((a, b) => a.name.localeCompare(b.name))
   const [recipeId, setRecipeId] = useState(initialRecipe ?? recipes[0]?.id ?? '')
   const [servings, setServingsText] = useState(initialServings !== undefined ? String(initialServings) : '')
-  const recipe = findRecipe(data, recipeId)
+  const defaultServings = data.settings.defaultServings
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!recipeId) return
     const n = servings.trim() === '' ? undefined : Number(servings)
     if (n !== undefined && (!Number.isInteger(n) || n < 1)) return
-    // An override equal to the recipe default is just noise — store nothing.
-    onSave(recipeId, n === recipe?.servings ? undefined : n)
+    // An override equal to the household default is just noise — store nothing.
+    onSave(recipeId, n === defaultServings ? undefined : n)
   }
 
   return (
@@ -176,8 +192,8 @@ function EntryEditor({ recipeId: initialRecipe, servings: initialServings, lockR
         step={1}
         value={servings}
         onChange={(e) => setServingsText(e.target.value)}
-        placeholder={recipe ? `${recipe.servings} srv` : 'srv'}
-        title="Servings (blank = recipe default)"
+        placeholder={`${defaultServings} srv`}
+        title="Servings (blank = household default)"
         autoFocus={lockRecipe}
       />
       <div className="row">

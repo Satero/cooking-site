@@ -550,3 +550,34 @@ select:disabled {
   padding: 0.2rem 0.5rem;
   font-size: 0.8rem;
 }
+
+.people {
+  gap: 0.4rem;
+  color: var(--muted);
+}
+
+/* Shopping */
+.shopping-item {
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.shopping-item label {
+  cursor: pointer;
+  gap: 0.75rem;
+}
+
+.shopping-item input[type='checkbox'] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
+}
+
+.shopping-item.checked .shopping-text {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.shopping-for {
+  text-align: right;
+}

@@ -1,6 +1,6 @@
 // Pure helpers for the meal schedule.
 
-import type { AppData, DateISO, MealSlot, ScheduleEntry } from '../types'
+import type { AppData, DateISO, MealSlot, ScheduleEntry, Settings } from '../types'
 import { newId } from '../storage'
 import { dateRange } from './dates'
 
@@ -20,6 +20,15 @@ export function setServings(data: AppData, id: string, servingsOverride: number 
       return servingsOverride === undefined ? rest : { ...rest, servingsOverride }
     }),
   }
+}
+
+/** Servings this entry is cooked for: its override, else the household default. */
+export function effectiveServings(entry: ScheduleEntry, settings: Settings): number {
+  return entry.servingsOverride ?? settings.defaultServings
+}
+
+export function setDefaultServings(data: AppData, n: number): AppData {
+  return { ...data, settings: { ...data.settings, defaultServings: n } }
 }
 
 export function removeEntry(data: AppData, id: string): AppData {
