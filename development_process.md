@@ -30,7 +30,7 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - [x] **M0 — Scaffold**: Vite/React/TS, nav + routing, shared types, versioned storage + store context, Settings (export / import / reset), docs, first push.
 - [x] **M1 — Recipes**: list + detail, create / edit / delete, dynamic ingredient rows, ordered steps with reorder, tags, source URL, servings.
 - [x] **M2 — Learnings**: dated learnings per recipe or general; Learnings page (filterable) and shown on recipe detail.
-- [ ] **M3 — Schedule**: week view (7 days × 3 slots), multiple dishes per slot, servings override, week navigation.
+- [x] **M3 — Schedule**: week view (7 days × 3 slots), multiple dishes per slot, servings override, week navigation.
 - [ ] **M4 — Shopping**: derived list for a date range, merged + scaled quantities, persistent checkboxes, "needed by" hint, Copy-list button.
 - [ ] **M5 — Cooking**: today's dishes by default or pick any recipe; scaled ingredients, step checkboxes, general + recipe learnings.
 - [ ] **M6 — Polish**: sample data, empty states, README update.
@@ -63,6 +63,16 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - `src/data/learnings.ts` — `createLearning` / `updateLearning` / `deleteLearning` / `learningsForRecipe` / `generalLearnings`, same pure-helper pattern as recipes.
 - Two shared components: `LearningForm` (date defaults to today, recipe select with a "General" option, textarea) and `LearningList` (read view with inline Edit → swaps that card for the form, and Delete behind a confirm). Both are reused by the Learnings page and the recipe detail page.
 - General learnings are stored as `recipeId: null`. The Cooking page (M5) will show `generalLearnings()` on every view plus `learningsForRecipe()` for each dish being cooked.
+
+### M3 — Schedule (2026-09-21)
+
+- `/schedule` is a 7-column × 3-row grid (Mon–Sun × breakfast / lunch / dinner). ← / Today / → move by week; the week starts on **Monday**. Today's column is tinted.
+- Each cell lists its entries (recipe name → link, servings pill, ✕) and a dashed "+" that opens an inline picker: recipe select + optional servings box (placeholder shows the recipe's default). Clicking the servings pill reopens the picker with the recipe locked to change just the servings.
+- **Servings override is only stored when it differs from the recipe default** — entering the default clears it. The pill shows `6*` when overridden so you can see at a glance which dishes are scaled.
+- Removing an entry is one click with no confirm; it's trivially re-addable, unlike deleting a recipe.
+- `src/data/dates.ts` — ISO-string date math in local time (`addDays`, `startOfWeek`, `dateRange`, labels). Builds `Date` from parts rather than parsing `"YYYY-MM-DD"`, which JS treats as UTC and shifts by a day in US timezones.
+- `src/data/schedule.ts` — `addEntry` / `setServings` / `removeEntry` / `entriesFor` / `entriesInRange`. The last one is what Shopping (M4) will use.
+- The schedule page uses a wider max-width (`Page wide`) than the others; seven columns didn't fit comfortably in 960px.
 
 ## Future improvements (v1.x)
 
