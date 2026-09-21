@@ -57,7 +57,3 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - **Manual shopping items** not tied to a recipe (milk, paper towels).
 - Persist cooking-step progress across tab closes (currently intentionally session-only).
 
-## Open questions (to learn later)
-
-- **What is Tailwind good for?** — v1 uses plain CSS. When is utility-first CSS worth it, and what does it cost?
-- **What is Vite good for?** — it's the build tool / dev server here. What exactly does it do vs. `tsc`, and why is it the default for React projects now?
