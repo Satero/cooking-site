@@ -56,6 +56,12 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - Form state is all strings while editing and parsed/validated on submit; blank ingredient and step rows are dropped, so the "always one empty row" UX doesn't leak into stored data.
 - Split `useStore` and `StoreContext` out of `store.tsx` — oxlint's Fast Refresh rule wants component files to export only components.
 
+## Future improvements (v1.x)
+
+Smaller quality-of-life items that don't need the v2 backend work.
+
+- **Paste all steps at once.** In the recipe form, let the user paste a whole block of instructions (e.g. from a recipe site) and have the app split it into individual step fields — by blank lines, numbered prefixes (`1.`, `2)`), or one-per-line — instead of copy/pasting each step into its own field. Same idea could apply to ingredients.
+
 ## v2 ideas
 
 - **Use it at the grocery store**: needs data off the laptop — a backend + sync (small Node/SQLite server on the home network, or a hosted free tier like Supabase) and a mobile-friendly layout.
