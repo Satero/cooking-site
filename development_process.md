@@ -29,7 +29,7 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 
 - [x] **M0 — Scaffold**: Vite/React/TS, nav + routing, shared types, versioned storage + store context, Settings (export / import / reset), docs, first push.
 - [x] **M1 — Recipes**: list + detail, create / edit / delete, dynamic ingredient rows, ordered steps with reorder, tags, source URL, servings.
-- [ ] **M2 — Learnings**: dated learnings per recipe or general; Learnings page (filterable) and shown on recipe detail.
+- [x] **M2 — Learnings**: dated learnings per recipe or general; Learnings page (filterable) and shown on recipe detail.
 - [ ] **M3 — Schedule**: week view (7 days × 3 slots), multiple dishes per slot, servings override, week navigation.
 - [ ] **M4 — Shopping**: derived list for a date range, merged + scaled quantities, persistent checkboxes, "needed by" hint, Copy-list button.
 - [ ] **M5 — Cooking**: today's dishes by default or pick any recipe; scaled ingredients, step checkboxes, general + recipe learnings.
@@ -55,6 +55,14 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - Search matches recipe name, tags, or ingredient names.
 - Form state is all strings while editing and parsed/validated on submit; blank ingredient and step rows are dropped, so the "always one empty row" UX doesn't leak into stored data.
 - Split `useStore` and `StoreContext` out of `store.tsx` — oxlint's Fast Refresh rule wants component files to export only components.
+
+### M2 — Learnings (2026-09-21)
+
+- `/learnings` page: all learnings newest-first, filter dropdown (All / General only / per recipe), "+ New learning" opens an inline form card. No separate routes — learnings are short notes, so create/edit happen in place.
+- Recipe detail page gets a **Learnings** section listing only that recipe's learnings, with an add form where the recipe picker is preselected and locked.
+- `src/data/learnings.ts` — `createLearning` / `updateLearning` / `deleteLearning` / `learningsForRecipe` / `generalLearnings`, same pure-helper pattern as recipes.
+- Two shared components: `LearningForm` (date defaults to today, recipe select with a "General" option, textarea) and `LearningList` (read view with inline Edit → swaps that card for the form, and Delete behind a confirm). Both are reused by the Learnings page and the recipe detail page.
+- General learnings are stored as `recipeId: null`. The Cooking page (M5) will show `generalLearnings()` on every view plus `learningsForRecipe()` for each dish being cooked.
 
 ## Future improvements (v1.x)
 

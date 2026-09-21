@@ -368,3 +368,51 @@ fieldset > button {
 .message.error {
   border-left-color: var(--danger);
 }
+
+/* Learnings */
+.section {
+  margin-top: 1.5rem;
+}
+
+.section .toolbar h2 {
+  margin: 0;
+}
+
+.learning {
+  padding: 0.75rem 1rem;
+}
+
+.learning-head {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.learning-text {
+  margin: 0;
+}
+
+.link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: inherit;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.link-btn.danger {
+  color: var(--danger);
+}
+
+.learning-form label {
+  font-weight: 500;
+}
+
+select:disabled {
+  opacity: 0.7;
+}

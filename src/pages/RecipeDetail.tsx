@@ -1,13 +1,18 @@
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Page } from '../components/Page'
 import { useStore } from '../useStore'
 import { deleteRecipe, findRecipe, formatIngredient } from '../data/recipes'
+import { createLearning, learningsForRecipe } from '../data/learnings'
+import { LearningForm } from '../components/LearningForm'
+import { LearningList } from '../components/LearningList'
 
 export function RecipeDetailPage() {
   const { id } = useParams()
   const { data, update } = useStore()
   const navigate = useNavigate()
   const recipe = findRecipe(data, id)
+  const [addingLearning, setAddingLearning] = useState(false)
 
   if (!recipe) {
     return (
@@ -91,6 +96,31 @@ export function RecipeDetailPage() {
           <p className="prewrap">{recipe.notes}</p>
         </section>
       )}
+
+      <section className="section">
+        <div className="row toolbar">
+          <h2>Learnings</h2>
+          <span className="grow" />
+          {!addingLearning && <button onClick={() => setAddingLearning(true)}>+ Add learning</button>}
+        </div>
+        {addingLearning && (
+          <div className="card">
+            <LearningForm
+              fixedRecipeId={recipe.id}
+              onSubmit={(input) => {
+                update((d) => createLearning(d, input))
+                setAddingLearning(false)
+              }}
+              onCancel={() => setAddingLearning(false)}
+            />
+          </div>
+        )}
+        <LearningList
+          learnings={learningsForRecipe(data, recipe.id)}
+          hideRecipe
+          emptyText="No learnings for this recipe yet."
+        />
+      </section>
     </Page>
   )
 }
