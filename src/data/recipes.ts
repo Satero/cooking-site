@@ -94,3 +94,13 @@ export const formatQtyInput = (qty: number | undefined) => fmt(qty, true)
 export function formatIngredient(i: Ingredient): string {
   return [formatQty(i.qty), i.unit, i.name].filter(Boolean).join(' ')
 }
+
+/**
+ * Ingredients scaled from the recipe's own servings to `servings`.
+ * Quantity-less ingredients ("black pepper") pass through untouched.
+ */
+export function scaleIngredients(recipe: Recipe, servings: number): Ingredient[] {
+  const factor = recipe.servings > 0 ? servings / recipe.servings : 1
+  if (factor === 1) return recipe.ingredients
+  return recipe.ingredients.map((i) => (i.qty === undefined ? i : { ...i, qty: i.qty * factor }))
+}

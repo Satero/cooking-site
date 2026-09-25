@@ -33,7 +33,7 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - [x] **M2 — Learnings**: dated learnings per recipe or general; Learnings page (filterable) and shown on recipe detail.
 - [x] **M3 — Schedule**: week view (7 days × 3 slots), multiple dishes per slot, servings override, week navigation.
 - [x] **M4 — Shopping**: derived list for a date range, merged + scaled quantities, persistent checkboxes, "needed by" hint, Copy-list button.
-- [ ] **M5 — Cooking**: today's dishes by default or pick any recipe; scaled ingredients, step checkboxes, general + recipe learnings.
+- [x] **M5 — Cooking**: today's dishes by default or pick any recipe; scaled ingredients, step checkboxes, general + recipe learnings.
 - [ ] **M6 — Polish**: sample data, empty states, README update.
 
 ## Build log
@@ -89,6 +89,14 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - Each line shows which recipes need it and how many times (`Chicken Adobo ×2`).
 - **Checked items persist** in `shopping.checked` as item keys. Keys not in the current list are pruned on the next toggle so stale checks from old weeks don't pile up. "Uncheck all" resets.
 - **Copy remaining** puts the unchecked lines on the clipboard as a `- item` list — the bridge to a phone until v2. Falls back to a `prompt()` if the Clipboard API is unavailable.
+
+### M5 — Cooking (2026-09-25)
+
+- `/cooking` shows **today's** scheduled dishes grouped in slot order (breakfast → lunch → dinner), each as a card: scaled ingredients, step checkboxes, and that recipe's learnings. **General learnings** sit in their own highlighted card at the top, above every dish.
+- **"Also cooking" picker** adds any recipe ad hoc, at the household default servings. Ad-hoc dishes have no slot tag and carry a Remove link; scheduled ones can only be removed from the Schedule page, which is where they live.
+- A dish is identified by `entry:<scheduleId>` or `recipe:<recipeId>`, so cooking a recipe ad hoc *and* on the schedule tracks two independent sets of checkmarks.
+- `scaleIngredients(recipe, servings)` multiplies by `servings / recipe.servings`; quantity-less ingredients ("black pepper") pass through unscaled. The header says `6 servings (recipe serves 4)` so the scaling is visible rather than mysterious.
+- `src/session.ts` — step progress and the ad-hoc dish list live in **`sessionStorage`**, not the app store, so they survive navigation between pages but reset when the tab closes. Every accessor is wrapped in try/catch since `sessionStorage` throws in some privacy modes. Per-dish **Reset** clears just that dish's checkmarks.
 
 ## Future improvements (v1.x)
 
