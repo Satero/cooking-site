@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Page } from '../components/Page'
 import { useStore } from '../useStore'
 import { emptyData, exportJSON, importJSON, todayISO } from '../storage'
+import { sampleData } from '../data/sample'
 
 export function SettingsPage() {
   const { data, replace } = useStore()
@@ -39,6 +40,13 @@ export function SettingsPage() {
     setMessage('All data cleared.')
   }
 
+  function loadSample() {
+    const hasData = data.recipes.length > 0 || data.learnings.length > 0 || data.schedule.length > 0
+    if (hasData && !confirm('Loading sample data replaces everything currently here. Continue?')) return
+    replace(sampleData())
+    setMessage('Sample data loaded.')
+  }
+
   const counts = `${data.recipes.length} recipes · ${data.learnings.length} learnings · ${data.schedule.length} schedule entries`
 
   return (
@@ -55,6 +63,15 @@ export function SettingsPage() {
           <button onClick={() => fileInput.current?.click()}>Import JSON…</button>
           <input ref={fileInput} type="file" accept="application/json" hidden onChange={onImportFile} />
         </div>
+      </section>
+
+      <section className="card">
+        <h2>Sample data</h2>
+        <p className="muted">
+          Loads four recipes, a few learnings, and a week of meals so you can see how the pages fit together.
+          Replaces whatever is here now.
+        </p>
+        <button onClick={loadSample}>Load sample data</button>
       </section>
 
       <section className="card danger">

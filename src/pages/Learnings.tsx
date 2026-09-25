@@ -61,7 +61,11 @@ export function LearningsPage() {
 
       <LearningList
         learnings={visible}
-        emptyText={data.learnings.length === 0 ? 'No learnings yet. Add one after your next cook.' : 'Nothing matches this filter.'}
+        emptyText={
+          data.learnings.length === 0
+            ? 'No learnings yet. Add one after your next cook — they show up on the Cooking page when you make that dish again.'
+            : 'Nothing matches this filter.'
+        }
       />
     </Page>
   )

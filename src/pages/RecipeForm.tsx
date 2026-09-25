@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { Page } from '../components/Page'
 import { useStore } from '../useStore'
 import { createRecipe, findRecipe, formatQtyInput, parseQty, updateRecipe, type RecipeInput } from '../data/recipes'
+import { parseIngredients, parseSteps } from '../data/parse'
+import { PasteBox } from '../components/PasteBox'
 import type { Recipe } from '../types'
 
 // Form-local shapes: everything is a string while editing, parsed on save.
@@ -112,6 +114,26 @@ function RecipeForm({ id }: { id: string | undefined }) {
     set('steps', next)
   }
 
+  // Paste helpers: append parsed rows, dropping the blank placeholder rows first
+  // so pasting into a fresh form reads as "replace" and into a filled one as "add".
+  function pasteIngredients(text: string): number {
+    const parsed = parseIngredients(text)
+    if (parsed.length === 0) return 0
+    const kept = form.ingredients.filter((r) => r.name.trim())
+    set('ingredients', [
+      ...kept,
+      ...parsed.map((i) => ({ qty: formatQtyInput(i.qty), unit: i.unit ?? '', name: i.name })),
+    ])
+    return parsed.length
+  }
+
+  function pasteSteps(text: string): number {
+    const parsed = parseSteps(text)
+    if (parsed.length === 0) return 0
+    set('steps', [...form.steps.filter((s) => s.trim()), ...parsed])
+    return parsed.length
+  }
+
   function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     const input = toInput(form)
@@ -182,9 +204,17 @@ function RecipeForm({ id }: { id: string | undefined }) {
               </button>
             </div>
           ))}
-          <button type="button" onClick={addIng}>
-            + Add ingredient
-          </button>
+          <div className="row">
+            <button type="button" onClick={addIng}>
+              + Add ingredient
+            </button>
+            <PasteBox
+              label="or paste a list…"
+              placeholder={'1 1/2 lb chicken thighs\n6 garlic cloves\n1/2 cup soy sauce\nblack pepper'}
+              hint="One ingredient per line. Quantities and units are split out automatically; anything it can't read stays in the name."
+              onPaste={pasteIngredients}
+            />
+          </div>
         </fieldset>
 
         <fieldset>
@@ -206,9 +236,17 @@ function RecipeForm({ id }: { id: string | undefined }) {
               </div>
             </div>
           ))}
-          <button type="button" onClick={addStep}>
-            + Add step
-          </button>
+          <div className="row">
+            <button type="button" onClick={addStep}>
+              + Add step
+            </button>
+            <PasteBox
+              label="or paste all steps…"
+              placeholder={'1. Marinate the chicken for 30 min.\n2. Sear skin-side down until browned.\n3. Simmer covered 30 min.'}
+              hint="Numbering and bullets are stripped. Blank lines separate steps if present, otherwise each line is one step."
+              onPaste={pasteSteps}
+            />
+          </div>
         </fieldset>
 
         <label>

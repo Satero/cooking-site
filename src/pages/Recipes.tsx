@@ -26,7 +26,10 @@ export function RecipesPage() {
       </div>
 
       {data.recipes.length === 0 ? (
-        <p className="muted">No recipes yet. Add your first one.</p>
+        <p className="muted">
+          No recipes yet. Add your first one, or load <Link to="/settings">sample data</Link> to see how the pages
+          fit together.
+        </p>
       ) : recipes.length === 0 ? (
         <p className="muted">Nothing matches "{query}".</p>
       ) : (

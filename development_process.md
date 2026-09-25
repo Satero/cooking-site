@@ -34,7 +34,7 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - [x] **M3 — Schedule**: week view (7 days × 3 slots), multiple dishes per slot, servings override, week navigation.
 - [x] **M4 — Shopping**: derived list for a date range, merged + scaled quantities, persistent checkboxes, "needed by" hint, Copy-list button.
 - [x] **M5 — Cooking**: today's dishes by default or pick any recipe; scaled ingredients, step checkboxes, general + recipe learnings.
-- [ ] **M6 — Polish**: sample data, empty states, README update.
+- [x] **M6 — Polish**: paste-to-rows, sample data, empty states, README update.
 
 ## Build log
 
@@ -98,11 +98,30 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - `scaleIngredients(recipe, servings)` multiplies by `servings / recipe.servings`; quantity-less ingredients ("black pepper") pass through unscaled. The header says `6 servings (recipe serves 4)` so the scaling is visible rather than mysterious.
 - `src/session.ts` — step progress and the ad-hoc dish list live in **`sessionStorage`**, not the app store, so they survive navigation between pages but reset when the tab closes. Every accessor is wrapped in try/catch since `sessionStorage` throws in some privacy modes. Per-dish **Reset** clears just that dish's checkmarks.
 
+### M6 — Polish (2026-09-25)
+
+- **Paste a whole list at once** in the recipe form, for both ingredients and steps (the item logged under Future improvements after M1). `src/data/parse.ts`:
+  - `parseSteps()` — splits on blank lines when any are present (recipe sites often wrap one step over several lines), otherwise one step per line. Strips `1.` / `2)` / `Step 3:` / `-` / `*` / `•` leaders.
+  - `parseIngredients()` — per line, pulls a leading quantity (`2`, `1.5`, `1/2`, `1 1/2`, `½`, `1½`), then a unit **only if the next word is a recognized one**. So "2 large onions" keeps "large onions" as the name instead of inventing a unit, and a line with nothing parseable still becomes a name-only ingredient rather than being dropped.
+  - Both append to the existing rows after dropping blank placeholder rows, so pasting into a fresh form reads as "replace" and into a filled one as "add".
+- **`src/data/units.ts`** — shared unit vocabulary. Writing the parser surfaced a latent bug: Shopping merged on the unit string, so a pasted "2 cups rice" and a typed "1 cup rice" would have been two separate lines. Units are now stored as the user wrote them but **compared canonically**, which fixes it for typed input too, not just pasted.
+- **Sample data** (`src/data/sample.ts`), loadable from Settings: four recipes, five learnings, and a week of meals anchored to today, so every page has something on it. Deliberately not auto-loaded — deleting someone else's recipes is a bad first experience. It confirms before replacing existing data.
+- Empty states on Recipes and Learnings now say what the page is *for* and point at the sample data.
+- README rewritten to describe the finished app, including a map of how the code is organized.
+
 ## Future improvements (v1.x)
 
 Smaller quality-of-life items that don't need the v2 backend work.
 
-- **Paste all steps at once.** In the recipe form, let the user paste a whole block of instructions (e.g. from a recipe site) and have the app split it into individual step fields — by blank lines, numbered prefixes (`1.`, `2)`), or one-per-line — instead of copy/pasting each step into its own field. Same idea could apply to ingredients.
+- ~~Paste all steps at once~~ — shipped in M6, for both steps and ingredients.
+- **Discrete-item rounding on the shopping list.** Scaling can produce "7½ bay leaves". Mathematically right, practically silly — could round up items that have no unit.
+- **Unit conversion in the shopping merge.** Currently "1 cup" and "4 tbsp" of the same thing stay on separate lines by design; converting would merge them but needs a real unit graph.
+
+## Where this ended up
+
+All six milestones are done: v1 is feature-complete. Five working pages over one versioned `localStorage` store, ~1,900 lines of TypeScript and CSS, no backend.
+
+The structure that made it go smoothly: **`src/data/*` holds pure functions over `AppData`, `src/pages/*` stay thin and compose them.** Every milestone after M1 followed that split, and the two derived pages (Shopping, Cooking) were the easiest to write because all the real logic was already sitting in testable pure functions.
 
 ## v2 ideas
 

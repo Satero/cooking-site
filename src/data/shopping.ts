@@ -4,6 +4,7 @@ import type { AppData, DateISO } from '../types'
 import { addDays } from './dates'
 import { effectiveServings, entriesInRange } from './schedule'
 import { findRecipe } from './recipes'
+import { canonicalUnit } from './units'
 
 export type ShoppingItem = {
   /** Stable identity for the checkbox: normalized name + unit. */
@@ -19,7 +20,8 @@ export type ShoppingItem = {
 }
 
 export function itemKey(name: string, unit: string | undefined): string {
-  return `${name.trim().toLowerCase()}|${(unit ?? '').trim().toLowerCase()}`
+  // Units are compared canonically so "1 cup" and "2 cups" merge into one line.
+  return `${name.trim().toLowerCase()}|${canonicalUnit(unit)}`
 }
 
 /** The window the list covers. Start defaults to today so the list rolls forward on its own. */
