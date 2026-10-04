@@ -26,6 +26,20 @@ npm run dev
 
 `npm run build` type-checks (`tsc`) and produces `dist/`. `npm run lint` runs oxlint.
 
+## Test
+
+```bash
+npm test             # run once
+npm run test:watch   # re-run on save
+```
+
+Vitest + Testing Library on jsdom. Tests sit next to the code they cover (`*.test.ts`):
+
+- `src/data/*.test.ts`, `src/storage.test.ts` — the pure helpers and the storage layer (parsing, scaling, shopping merge, dates, migrations, import validation)
+- `src/App.test.tsx` — renders the whole app and drives a few flows end to end (create a recipe, shopping list, cooking steps, import)
+
+Tests run with `TZ=America/Detroit` (set in `vite.config.ts`) so date bugs that only show up west of UTC fail no matter which timezone the machine is in.
+
 ## Stack
 
 Vite + React + TypeScript, `react-router`, plain CSS. No backend, no framework beyond React.
