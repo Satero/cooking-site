@@ -10,4 +10,5 @@ afterEach(() => {
   sessionStorage.clear()
   vi.useRealTimers()
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })

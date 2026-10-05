@@ -4,9 +4,10 @@ import { Page } from '../components/Page'
 import { useStore } from '../useStore'
 import { todayISO } from '../storage'
 import { MEAL_SLOTS, type DateISO, type MealSlot } from '../types'
-import { addDays, dateRange, rangeLabel, shortDate, startOfWeek } from '../data/dates'
+import { addDays, dateRange, fromISO, rangeLabel, shortDate, startOfWeek } from '../data/dates'
 import { addEntry, effectiveServings, entriesFor, removeEntry, setDefaultServings, setServings } from '../data/schedule'
 import { findRecipe } from '../data/recipes'
+import { SCHEDULE_LIST_QUERY, useMediaQuery } from '../useMediaQuery'
 
 const SLOT_LABEL: Record<MealSlot, string> = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 const WEEKDAY_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -16,6 +17,7 @@ export function SchedulePage() {
   const today = todayISO()
   const [weekStart, setWeekStart] = useState<DateISO>(() => startOfWeek(today))
   const days = dateRange(weekStart, 7)
+  const asList = useMediaQuery(SCHEDULE_LIST_QUERY)
 
   return (
     <Page title="Schedule" wide>
@@ -52,22 +54,45 @@ export function SchedulePage() {
         </p>
       )}
 
-      <div className="week-grid">
-        <div className="week-corner" />
-        {days.map((d) => {
-          const dow = new Date(d + 'T00:00').getDay()
-          return (
+      {asList ? (
+        <DayList days={days} today={today} />
+      ) : (
+        <div className="week-grid">
+          <div className="week-corner" />
+          {days.map((d) => (
             <div key={d} className={`week-day-head${d === today ? ' today' : ''}`}>
-              <div className="small muted">{WEEKDAY_LONG[dow].slice(0, 3)}</div>
+              <div className="small muted">{WEEKDAY_LONG[fromISO(d).getDay()].slice(0, 3)}</div>
               <div>{shortDate(d)}</div>
             </div>
-          )
-        })}
-        {MEAL_SLOTS.map((slot) => (
-          <SlotRow key={slot} slot={slot} days={days} today={today} />
-        ))}
-      </div>
+          ))}
+          {MEAL_SLOTS.map((slot) => (
+            <SlotRow key={slot} slot={slot} days={days} today={today} />
+          ))}
+        </div>
+      )}
     </Page>
+  )
+}
+
+/** Phone/tablet layout: one block per day, meal slots stacked inside it. */
+function DayList({ days, today }: { days: DateISO[]; today: DateISO }) {
+  return (
+    <div className="day-list">
+      {days.map((d) => (
+        <section key={d} className={`card day${d === today ? ' today' : ''}`}>
+          <h2 className="day-head">
+            {WEEKDAY_LONG[fromISO(d).getDay()]} <span className="muted">{shortDate(d)}</span>
+            {d === today && <span className="tag">Today</span>}
+          </h2>
+          {MEAL_SLOTS.map((slot) => (
+            <div key={slot} className="day-slot">
+              <span className="day-slot-head muted small">{SLOT_LABEL[slot]}</span>
+              <SlotCell date={d} slot={slot} isToday={false} />
+            </div>
+          ))}
+        </section>
+      ))}
+    </div>
   )
 }
 

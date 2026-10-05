@@ -86,6 +86,25 @@ describe('Recipes', () => {
   })
 })
 
+describe('Schedule', () => {
+  it('shows a stacked day list instead of the week grid on narrow screens', () => {
+    save(sampleData())
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: true,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    const { container } = renderAt('/schedule')
+
+    expect(container.querySelector('.week-grid')).toBeNull()
+    const today = screen.getByRole('heading', { name: /Thursday Oct 1/ }).closest('section')!
+    expect(within(today).getByText('Today')).toBeInTheDocument()
+    expect(within(today).getByRole('link', { name: 'Chicken Adobo' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(7)
+  })
+})
+
 describe('Shopping', () => {
   it('lists scaled, merged ingredients from the schedule and remembers checked items', async () => {
     save(sampleData())

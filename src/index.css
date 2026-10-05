@@ -428,7 +428,8 @@ select:disabled {
 
 .week-grid {
   display: grid;
-  grid-template-columns: 6rem repeat(7, 1fr);
+  /* minmax(0, …) so long recipe names ellipsize instead of widening their column */
+  grid-template-columns: 6rem repeat(7, minmax(0, 1fr));
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
@@ -682,4 +683,189 @@ select:disabled {
 
 .paste-box p {
   margin: 0;
+}
+
+/* Schedule, phone/tablet layout (see DayList in Schedule.tsx) */
+.day {
+  padding: 0.75rem 1rem;
+}
+
+.day.today {
+  border-color: var(--accent);
+}
+
+.day-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+}
+
+.day-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.day-slot .week-cell {
+  min-height: 0;
+  min-width: 0; /* let long recipe names ellipsize instead of overflowing the card */
+  padding: 0;
+}
+
+/* Phone width. (The Schedule switches layouts at its own, wider breakpoint: SCHEDULE_LIST_QUERY.) */
+@media (max-width: 640px) {
+  /* Nav: brand on its own line, links in a 3×2 grid so none are hidden */
+  .nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .nav ul {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.25rem;
+  }
+
+  .nav a {
+    text-align: center;
+    padding: 0.55rem 0.25rem;
+  }
+
+  .page {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  /* Touch targets: ~44px tall controls */
+  button,
+  .button,
+  input,
+  select {
+    min-height: 2.75rem;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .link-btn,
+  .entry-servings,
+  .entry-remove,
+  .icon-btn {
+    min-height: 0;
+  }
+
+  .entry-servings,
+  .entry-remove {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+
+  /* iOS Safari zooms into inputs smaller than 16px on focus */
+  input,
+  select,
+  textarea,
+  .entry-editor select,
+  .entry-editor input,
+  .paste-box textarea {
+    font-size: 16px;
+  }
+
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+
+  .list-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .form .row > label.grow {
+    flex-basis: 100%;
+  }
+
+  /* Ingredient rows: qty + unit + remove on top, name full width below */
+  .ing-head {
+    display: none;
+  }
+
+  .ing-grid {
+    grid-template-columns: 5rem 1fr 2.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ing-grid > :nth-child(3) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .ing-grid .icon-btn {
+    min-height: 2.75rem;
+  }
+
+  .step-row .icon-btn {
+    min-width: 2.5rem;
+    min-height: 2.25rem;
+  }
+
+  /* Shopping: bigger rows and checkboxes, "needed for" wraps under the item */
+  .shopping-item {
+    padding: 0.7rem 0.9rem;
+  }
+
+  .shopping-item input[type='checkbox'],
+  .step-label input[type='checkbox'] {
+    width: 1.4rem;
+    height: 1.4rem;
+    min-height: 0;
+  }
+
+  .shopping-item .grow {
+    display: none;
+  }
+
+  .shopping-for {
+    flex-basis: 100%;
+    text-align: left;
+    padding-left: 2.15rem;
+  }
+
+  .shopping-item .shopping-text {
+    flex: 1;
+  }
+
+  /* Cooking: roomier step rows so they're easy to tap with messy hands */
+  .steps li {
+    margin-bottom: 0.6rem;
+  }
+
+  .step-label input[type='checkbox'] {
+    margin-top: 0.1rem;
+  }
+
+  .toolbar input[type='date'] {
+    flex: 1;
+  }
+
+  /* Cooking's "Also cooking" picker: long option text would push it off-screen */
+  .people:has(select) {
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .people select {
+    flex: 1;
+    min-width: 0;
+  }
 }
