@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
+import { HashRouter, Navigate, Route, Routes } from 'react-router'
 import { StoreProvider } from './store'
 import { Nav } from './components/Nav'
 import { RecipesPage } from './pages/Recipes'
@@ -10,10 +10,12 @@ import { ShoppingPage } from './pages/Shopping'
 import { CookingPage } from './pages/Cooking'
 import { SettingsPage } from './pages/Settings'
 
+// HashRouter (URLs like /#/shopping) because GitHub Pages can't rewrite unknown
+// paths to index.html, so a refresh on /shopping would 404 with BrowserRouter.
 export default function App() {
   return (
     <StoreProvider>
-      <BrowserRouter>
+      <HashRouter>
         <Nav />
         <Routes>
           <Route path="/" element={<Navigate to="/recipes" replace />} />
@@ -27,7 +29,7 @@ export default function App() {
           <Route path="/cooking" element={<CookingPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </StoreProvider>
   )
 }

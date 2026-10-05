@@ -15,7 +15,7 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 | Framework | React + TypeScript on Vite | Justin knows React; this app has enough interlinked state (editing a recipe should update Shopping, etc.) that a framework pays off vs. the vanilla-TS approach used in `timekeeper`. |
 | Routing | `react-router` | Standard; keeps six pages clean in a single-page app. |
 | Styling | Plain CSS with design tokens, light + dark via `prefers-color-scheme` | No new tooling to learn yet — see open questions. |
-| Layout | Desktop only | The app stays on the computer for now. Mobile matters once it leaves the house (v2). |
+| Layout | Desktop only (v1); phone + tablet added in v1.1 | The app stayed on the computer at first. v1.1 put it on the phone via GitHub Pages + JSON export/import, without waiting for a backend. |
 | Ingredients | Structured `{ qty?, unit?, name }` | Required for Shopping to merge duplicates across recipes and scale by servings. Freeform text would make Shopping a dumb concatenation. |
 | Shopping merge rule | Merge when `name + unit` match (case-insensitive); otherwise list separately | Avoids guessing unit conversions. |
 | Shopping window | Today + 6 days by default, user-adjustable | Matches "what do I buy for the coming week." |
@@ -109,6 +109,13 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - Empty states on Recipes and Learnings now say what the page is *for* and point at the sample data.
 - README rewritten to describe the finished app, including a map of how the code is organized.
 
+### v1.1 — Tests, phone, offline (2026-10-04 – 10-05)
+
+- **Tests**: Vitest + Testing Library on jsdom. Unit tests beside every `src/data/*` helper and `storage.ts`; `App.test.tsx` renders the whole app for a few end-to-end flows. TZ pinned to America/Detroit so the UTC date bug stays caught.
+- **Phone layout** instead of waiting for the v2 backend: the app is useful at the store as long as the shopping list is on the phone, and a manual JSON export/import is an acceptable bridge for one user. 640px breakpoint for most pages; the Schedule switches to a stacked day list below 960px because seven columns are unreadable on a tablet too.
+- **Hosting**: GitHub Pages (public repo, free, deploys on push). Needed `HashRouter`, since Pages can't serve `index.html` for deep links.
+- **Offline + Home Screen** (`vite-plugin-pwa`): stores often have no signal, and iOS can clear a regular site's storage after ~7 days unused, which Home Screen apps are exempt from.
+
 ## Future improvements (v1.x)
 
 Smaller quality-of-life items that don't need the v2 backend work.
@@ -125,9 +132,8 @@ The structure that made it go smoothly: **`src/data/*` holds pure functions over
 
 ## v2 ideas
 
-- **Use it at the grocery store**: needs data off the laptop — a backend + sync (small Node/SQLite server on the home network, or a hosted free tier like Supabase) and a mobile-friendly layout.
+- **Automatic sync between laptop and phone** (v1.1 does it by manual export/import): a backend + sync (small Node/SQLite server on the home network, or a hosted free tier like Supabase).
 - **Multiple users**: accounts / auth, each with their own recipes and schedule. Depends on the backend above.
-- **Mobile layout** for Shopping and Cooking (phone at the store, tablet at the stove).
 - Recipe **photos** and **prep / cook time**.
 - **Import a recipe from a URL** (scrape recipe-site structured data).
 - **Pantry staples**: mark salt / oil / etc. as always-on-hand so they don't appear on the shopping list.

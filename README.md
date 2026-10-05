@@ -17,6 +17,19 @@ Single-user, browser-only. All data lives in this browser's `localStorage`; use 
 
 New here? **Settings → Load sample data** fills every page so you can see how they connect.
 
+## Using it on your phone
+
+The site is published to GitHub Pages at **https://satero.github.io/cooking-site/** (redeployed on every push to `main`). It works offline after the first visit, so it still opens in a store with no signal.
+
+Each browser keeps its **own copy** of the data, so moving data between laptop and phone is a manual export/import:
+
+1. **Phone, once:** open the URL in Safari → Share → **Add to Home Screen**, then open the app from that icon. (A Home Screen app's storage is separate from Safari's, and iOS doesn't auto-clear it after a week of no visits the way it can for regular sites. Always import from inside the Home Screen app.)
+2. **Laptop:** Settings → **Export JSON**.
+3. Send the file to the phone (AirDrop, iCloud Drive, email to yourself).
+4. **Phone app:** Settings → **Import JSON…** and pick the file.
+
+Importing **replaces** everything on the phone, including shopping checkmarks. Changes made on the phone don't flow back to the laptop unless you export/import the other way.
+
 ## Run
 
 ```bash
@@ -42,7 +55,13 @@ Tests run with `TZ=America/Detroit` (set in `vite.config.ts`) so date bugs that 
 
 ## Stack
 
-Vite + React + TypeScript, `react-router`, plain CSS. No backend, no framework beyond React.
+Vite + React + TypeScript, `react-router` (hash URLs, e.g. `/#/shopping`, so refreshes work on GitHub Pages), plain CSS. `vite-plugin-pwa` for the manifest and offline service worker. No backend, no framework beyond React.
+
+## Deploy
+
+`.github/workflows/deploy.yml` lints, tests, builds with `--base=/cooking-site/`, and publishes `dist/` to GitHub Pages on every push to `main`. One-time setup: repo **Settings → Pages → Source: GitHub Actions**.
+
+To check the production build locally (including offline): `npx vite preview --base=/cooking-site/` and open `http://localhost:4173/cooking-site/`.
 
 ## How the code is organized
 

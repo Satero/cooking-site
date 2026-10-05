@@ -12,7 +12,7 @@ import { sampleData } from './data/sample'
 const TODAY = new Date(2026, 9, 1, 12, 0) // Thu Oct 1 2026, local noon
 
 function renderAt(path: string) {
-  window.history.pushState({}, '', path)
+  window.history.pushState({}, '', `/#${path}`)
   return { user: userEvent.setup(), ...render(<App />) }
 }
 
