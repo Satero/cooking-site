@@ -16,7 +16,8 @@ export type Recipe = {
   name: string
   servings: number
   tags: string[]
-  sourceUrl?: string
+  /** Where the recipe came from. Any number, in the order entered. */
+  sourceUrls: string[]
   ingredients: Ingredient[]
   /** Ordered cooking steps. */
   steps: string[]

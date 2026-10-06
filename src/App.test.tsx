@@ -58,6 +58,38 @@ describe('Recipes', () => {
     expect(screen.getByRole('link', { name: 'Garlic Rice' })).toBeInTheDocument()
   })
 
+  it('saves multiple source URLs, dropping blank rows, and links each by site name', async () => {
+    const { user } = renderAt('/recipes/new')
+
+    await user.type(screen.getByLabelText('Name'), 'Adobo')
+    await user.type(screen.getByLabelText('Source URL 1'), 'https://www.seriouseats.com/adobo')
+    await user.click(screen.getByRole('button', { name: '+ Add source' }))
+    await user.type(screen.getByLabelText('Source URL 2'), 'https://youtube.com/watch?v=abc')
+    await user.click(screen.getByRole('button', { name: '+ Add source' })) // left blank
+    await user.click(screen.getByRole('button', { name: 'Create recipe' }))
+
+    expect(load().recipes[0].sourceUrls).toEqual(['https://www.seriouseats.com/adobo', 'https://youtube.com/watch?v=abc'])
+    expect(screen.getByRole('link', { name: 'seriouseats.com ↗' })).toHaveAttribute('href', 'https://www.seriouseats.com/adobo')
+    expect(screen.getByRole('link', { name: 'youtube.com ↗' })).toHaveAttribute('href', 'https://youtube.com/watch?v=abc')
+
+    // Editing shows the saved URLs back in the form; removing one drops it
+    await user.click(screen.getByRole('link', { name: 'Edit' }))
+    expect(screen.getByLabelText('Source URL 2')).toHaveValue('https://youtube.com/watch?v=abc')
+    await user.click(screen.getAllByRole('button', { name: 'Remove source' })[0])
+    await user.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(load().recipes[0].sourceUrls).toEqual(['https://youtube.com/watch?v=abc'])
+  })
+
+  it('never makes a non-web source URL clickable', () => {
+    const d = sampleData()
+    d.recipes[0].sourceUrls = ['javascript:alert(1)', 'https://example.com/ok']
+    save(d)
+    renderAt(`/recipes/${d.recipes[0].id}`)
+
+    expect(screen.getByText('javascript:alert(1)').closest('a')).toBeNull()
+    expect(screen.getByRole('link', { name: 'example.com ↗' })).toBeInTheDocument()
+  })
+
   it('shows a validation error instead of saving bad input', async () => {
     const { user } = renderAt('/recipes/new')
 

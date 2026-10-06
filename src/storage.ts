@@ -5,7 +5,7 @@
 import type { AppData } from './types'
 
 const STORAGE_KEY = 'cooking-site:data'
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 3
 
 type Envelope = { version: number; data: AppData }
 
@@ -19,13 +19,20 @@ export function emptyData(): AppData {
   }
 }
 
-/** Upgrade older envelopes in place. Add a case per schema bump. */
+/** Bring data from an older envelope up to the current shape. Add a step per schema bump. */
 function migrate(env: Envelope): AppData {
-  const data = env.data
-  // v1 → v2: added `settings`. Filling missing top-level keys from emptyData() covers it,
-  // so no explicit step is needed; keep this switch for bumps that reshape existing data.
-  // switch (env.version) { case 1: ... fallthrough }
-  return { ...emptyData(), ...data }
+  // v1 → v2: added `settings`. Filling missing top-level keys from emptyData() covers it.
+  const data = { ...emptyData(), ...env.data }
+
+  // v2 → v3: a recipe's single optional `sourceUrl` became a `sourceUrls` list.
+  if (env.version < 3) {
+    data.recipes = data.recipes.map((r) => {
+      const { sourceUrl, ...rest } = r as typeof r & { sourceUrl?: string }
+      return { ...rest, sourceUrls: sourceUrl ? [sourceUrl] : [] }
+    })
+  }
+
+  return data
 }
 
 export function load(): AppData {

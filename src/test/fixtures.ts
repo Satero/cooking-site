@@ -8,6 +8,7 @@ export function recipe(overrides: Partial<Recipe> & Pick<Recipe, 'id'>): Recipe 
     name: overrides.id,
     servings: 4,
     tags: [],
+    sourceUrls: [],
     ingredients: [],
     steps: [],
     createdAt: '2026-01-01T00:00:00.000Z',

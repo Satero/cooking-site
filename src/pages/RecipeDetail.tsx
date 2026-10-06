@@ -6,6 +6,7 @@ import { deleteRecipe, findRecipe, formatIngredient } from '../data/recipes'
 import { createLearning, learningsForRecipe } from '../data/learnings'
 import { LearningForm } from '../components/LearningForm'
 import { LearningList } from '../components/LearningList'
+import { linkLabel, safeHref } from '../data/urls'
 
 export function RecipeDetailPage() {
   const { id } = useParams()
@@ -55,11 +56,19 @@ export function RecipeDetailPage() {
             {t}
           </span>
         ))}
-        {recipe.sourceUrl && (
-          <a href={recipe.sourceUrl} target="_blank" rel="noreferrer">
-            Source ↗
-          </a>
-        )}
+        {recipe.sourceUrls.map((url, idx) => {
+          const href = safeHref(url)
+          // Non-http(s) links (e.g. javascript:) are shown as text, never made clickable.
+          return href ? (
+            <a key={idx} href={href} target="_blank" rel="noreferrer" title={url}>
+              {linkLabel(url)} ↗
+            </a>
+          ) : (
+            <span key={idx} className="muted small" title="Not a web link, so it isn't clickable">
+              {url}
+            </span>
+          )
+        })}
       </div>
 
       <div className="two-col">

@@ -8,7 +8,7 @@ Single-user, browser-only. All data lives in this browser's `localStorage`; use 
 
 | Page | What it does |
 |---|---|
-| **Recipes** | Add / edit recipes: ingredients (qty / unit / name), ordered steps, servings, tags, source URL. Paste a whole ingredient list or set of steps at once and it splits them into rows. |
+| **Recipes** | Add / edit recipes: ingredients (qty / unit / name), ordered steps, servings, tags, any number of source URLs. Paste a whole ingredient list or set of steps at once and it splits them into rows. |
 | **Learnings** | Dated notes tied to a recipe, or "general" learnings that apply to all cooking |
 | **Schedule** | Assign recipes to breakfast / lunch / dinner slots per day, with a household default serving size and per-meal overrides |
 | **Shopping** | Checklist of ingredients for the meals scheduled in a date range (default: today + 6 days), quantities merged and scaled, with a copy-to-clipboard button |

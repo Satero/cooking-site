@@ -97,7 +97,7 @@ describe('scaleIngredients', () => {
 })
 
 describe('create / update / delete', () => {
-  const input = { name: 'Adobo', servings: 4, tags: [], ingredients: [], steps: [] }
+  const input = { name: 'Adobo', servings: 4, tags: [], sourceUrls: [], ingredients: [], steps: [] }
 
   it('creates a recipe with an id and timestamps', () => {
     const { data: next, id } = createRecipe(data(), input)

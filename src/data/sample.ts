@@ -16,8 +16,8 @@ export function sampleData(): AppData {
     tags: string[],
     ingredients: AppData['recipes'][number]['ingredients'],
     steps: string[],
-    extra: { sourceUrl?: string; notes?: string } = {},
-  ) => ({ id, name, servings, tags, ingredients, steps, createdAt: now, updatedAt: now, ...extra })
+    extra: { sourceUrls?: string[]; notes?: string } = {},
+  ) => ({ id, name, servings, tags, ingredients, steps, sourceUrls: [], createdAt: now, updatedAt: now, ...extra })
 
   return {
     recipes: [
@@ -77,7 +77,7 @@ export function sampleData(): AppData {
           { name: 'salt' },
         ],
         ['Beat the eggs well.', 'Melt butter in a cold pan, add eggs, and stir constantly on low heat.', 'Pull off the heat while still slightly wet.'],
-        { sourceUrl: 'https://example.com/scrambled-eggs' },
+        { sourceUrls: ['https://example.com/scrambled-eggs', 'https://www.example.org/soft-eggs-video'] },
       ),
     ],
     learnings: [

@@ -14,7 +14,7 @@ type FormState = {
   name: string
   servings: string
   tags: string
-  sourceUrl: string
+  sourceUrls: string[]
   ingredients: IngRow[]
   steps: string[]
   notes: string
@@ -24,13 +24,13 @@ const emptyRow = (): IngRow => ({ qty: '', unit: '', name: '' })
 
 function fromRecipe(r: Recipe | undefined): FormState {
   if (!r) {
-    return { name: '', servings: '4', tags: '', sourceUrl: '', ingredients: [emptyRow()], steps: [''], notes: '' }
+    return { name: '', servings: '4', tags: '', sourceUrls: [''], ingredients: [emptyRow()], steps: [''], notes: '' }
   }
   return {
     name: r.name,
     servings: String(r.servings),
     tags: r.tags.join(', '),
-    sourceUrl: r.sourceUrl ?? '',
+    sourceUrls: r.sourceUrls.length ? [...r.sourceUrls] : [''],
     ingredients: r.ingredients.length
       ? r.ingredients.map((i) => ({ qty: formatQtyInput(i.qty), unit: i.unit ?? '', name: i.name }))
       : [emptyRow()],
@@ -55,7 +55,6 @@ function toInput(f: FormState): RecipeInput | string {
     ingredients.push({ name: iname, ...(qty !== undefined && { qty }), ...(row.unit.trim() && { unit: row.unit.trim() }) })
   }
 
-  const sourceUrl = f.sourceUrl.trim()
   const notes = f.notes.trim()
   return {
     name,
@@ -63,7 +62,7 @@ function toInput(f: FormState): RecipeInput | string {
     tags: f.tags.split(',').map((t) => t.trim()).filter(Boolean),
     ingredients,
     steps: f.steps.map((s) => s.trim()).filter(Boolean),
-    ...(sourceUrl && { sourceUrl }),
+    sourceUrls: f.sourceUrls.map((u) => u.trim()).filter(Boolean),
     ...(notes && { notes }),
   }
 }
@@ -113,6 +112,12 @@ function RecipeForm({ id }: { id: string | undefined }) {
     ;[next[idx], next[j]] = [next[j], next[idx]]
     set('steps', next)
   }
+
+  // Source URL helpers
+  const setUrl = (idx: number, value: string) => set('sourceUrls', form.sourceUrls.map((u, i) => (i === idx ? value : u)))
+  const addUrl = () => set('sourceUrls', [...form.sourceUrls, ''])
+  const removeUrl = (idx: number) =>
+    set('sourceUrls', form.sourceUrls.length === 1 ? [''] : form.sourceUrls.filter((_, i) => i !== idx))
 
   // Paste helpers: append parsed rows, dropping the blank placeholder rows first
   // so pasting into a fresh form reads as "replace" and into a filled one as "add".
@@ -181,10 +186,26 @@ function RecipeForm({ id }: { id: string | undefined }) {
           </label>
         </div>
 
-        <label>
-          Source URL
-          <input type="url" value={form.sourceUrl} onChange={(e) => set('sourceUrl', e.target.value)} placeholder="https://" />
-        </label>
+        <fieldset>
+          <legend>Sources</legend>
+          {form.sourceUrls.map((url, idx) => (
+            <div key={idx} className="url-row">
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(idx, e.target.value)}
+                placeholder="https://"
+                aria-label={`Source URL ${idx + 1}`}
+              />
+              <button type="button" onClick={() => removeUrl(idx)} aria-label="Remove source" className="icon-btn">
+                ✕
+              </button>
+            </div>
+          ))}
+          <button type="button" onClick={addUrl}>
+            + Add source
+          </button>
+        </fieldset>
 
         <fieldset>
           <legend>Ingredients</legend>

@@ -40,6 +40,49 @@ describe('migrate (via load and importJSON)', () => {
   it('upgrades a v1 backup file the same way', () => {
     expect(importJSON(JSON.stringify(v1)).settings).toEqual({ defaultServings: 4 })
   })
+
+  // v2 recipes had one optional `sourceUrl`; v3 has a `sourceUrls` list.
+  const v2Recipe = (extra: object) => ({
+    id: 'r',
+    name: 'Adobo',
+    servings: 4,
+    tags: [],
+    ingredients: [],
+    steps: [],
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...extra,
+  })
+  const v2 = {
+    version: 2,
+    data: {
+      ...emptyData(),
+      recipes: [v2Recipe({ id: 'with', sourceUrl: 'https://example.com/adobo' }), v2Recipe({ id: 'without' })],
+    },
+  }
+
+  it('turns a v2 sourceUrl into a one-item sourceUrls list', () => {
+    const [withUrl, withoutUrl] = importJSON(JSON.stringify(v2)).recipes
+    expect(withUrl.sourceUrls).toEqual(['https://example.com/adobo'])
+    expect('sourceUrl' in withUrl).toBe(false)
+    expect(withoutUrl.sourceUrls).toEqual([])
+  })
+
+  it('migrates v2 data already in localStorage on load', () => {
+    localStorage.setItem(KEY, JSON.stringify(v2))
+    expect(load().recipes[0].sourceUrls).toEqual(['https://example.com/adobo'])
+  })
+
+  it('gives v1 recipes an empty sourceUrls list too', () => {
+    const old = { version: 1, data: { recipes: [v2Recipe({})], learnings: [], schedule: [], shopping: { rangeDays: 7, checked: [] } } }
+    expect(importJSON(JSON.stringify(old)).recipes[0].sourceUrls).toEqual([])
+  })
+
+  it('leaves current-version data alone', () => {
+    const d = sampleData()
+    save(d)
+    expect(load().recipes.find((r) => r.id === 'sample-eggs')?.sourceUrls).toHaveLength(2)
+  })
 })
 
 describe('exportJSON / importJSON', () => {

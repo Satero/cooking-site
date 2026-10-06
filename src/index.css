@@ -332,6 +332,13 @@ fieldset > button {
   align-items: center;
 }
 
+.url-row {
+  display: grid;
+  grid-template-columns: 1fr 2.2rem;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .ing-head {
   padding: 0 0.6rem;
 }
@@ -810,8 +817,13 @@ select:disabled {
     grid-row: 2;
   }
 
-  .ing-grid .icon-btn {
+  .ing-grid .icon-btn,
+  .url-row .icon-btn {
     min-height: 2.75rem;
+  }
+
+  .url-row {
+    grid-template-columns: 1fr 2.75rem;
   }
 
   .step-row .icon-btn {

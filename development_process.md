@@ -116,6 +116,12 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - **Hosting**: GitHub Pages (public repo, free, deploys on push). Needed `HashRouter`, since Pages can't serve `index.html` for deep links.
 - **Offline + Home Screen** (`vite-plugin-pwa`): stores often have no signal, and iOS can clear a regular site's storage after ~7 days unused, which Home Screen apps are exempt from.
 
+### v1.2 — Multiple source URLs (2026-10-06)
+
+- A recipe's single `sourceUrl` became a `sourceUrls` list: a recipe often comes from a blog post *and* a video. The form edits it like the ingredient rows; the detail page links each one by site name ("seriouseats.com ↗"), since several "Source ↗" links would be indistinguishable. URL-only for now; per-link labels were considered and deferred as clutter on a phone.
+- **First reshaping schema bump (v3)**, so `migrate()` got its first real step. Old backups and stored data upgrade automatically; a v3 backup is refused by a not-yet-updated v2 app (the phone until it restarts), which is the intended safety check.
+- Links render only for `http`/`https`. Backups now move between devices, so a crafted or corrupted file could otherwise plant a clickable `javascript:` link.
+
 ## Future improvements (v1.x)
 
 Smaller quality-of-life items that don't need the v2 backend work.
