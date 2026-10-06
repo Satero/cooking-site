@@ -28,25 +28,86 @@ function migrate(env: Envelope): AppData {
   if (env.version < 3) {
     data.recipes = data.recipes.map((r) => {
       const { sourceUrl, ...rest } = r as typeof r & { sourceUrl?: string }
-      return { ...rest, sourceUrls: sourceUrl ? [sourceUrl] : [] }
+      // Keep a list if one is somehow already there rather than overwrite it.
+      return { ...rest, sourceUrls: rest.sourceUrls ?? (sourceUrl ? [sourceUrl] : []) }
     })
   }
 
   return data
 }
 
+/** Parse and upgrade stored or imported JSON. Throws on anything we can't safely read. */
+function parse(text: string): AppData {
+  const env = JSON.parse(text) as Partial<Envelope>
+  if (typeof env !== 'object' || env === null || typeof env.version !== 'number' || !env.data) {
+    throw new Error('Not a Cooking Site backup file')
+  }
+  // An older app must not guess at a newer shape — saving its guess back would lose fields.
+  if (env.version > SCHEMA_VERSION) {
+    throw new Error(`Data is from a newer version of the app (v${env.version}; this one supports up to v${SCHEMA_VERSION})`)
+  }
+  return migrate(env as Envelope)
+}
+
+// When stored data can't be read, the app starts empty and the store immediately
+// saves that empty state over the original. So before returning empty, keep a copy
+// of the original under its own key (never overwritten) for the user to download.
+const UNREADABLE_PREFIX = 'cooking-site:unreadable:'
+
+/** Set when an unreadable copy couldn't be kept (e.g. storage full): saving is then refused. */
+let saveBlocked = false
+
+export type UnreadableCopy = { key: string; savedAt: string; raw: string; error: string }
+
 export function load(): AppData {
+  let raw: string | null = null
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return emptyData()
-    return migrate(JSON.parse(raw) as Envelope)
+    return parse(raw)
   } catch (err) {
     console.error('Failed to load data, starting empty', err)
+    if (raw) keepUnreadableCopy(raw, err)
     return emptyData()
   }
 }
 
+function keepUnreadableCopy(raw: string, err: unknown): void {
+  const copy = { savedAt: new Date().toISOString(), error: err instanceof Error ? err.message : String(err), raw }
+  try {
+    localStorage.setItem(`${UNREADABLE_PREFIX}${copy.savedAt}`, JSON.stringify(copy))
+  } catch (e) {
+    // No copy means the original is the only one left; don't let save() overwrite it.
+    console.error('Could not keep a copy of unreadable data; saving is disabled', e)
+    saveBlocked = true
+  }
+}
+
+export function isSaveBlocked(): boolean {
+  return saveBlocked
+}
+
+/** Copies of stored data that failed to load, oldest first. */
+export function unreadableCopies(): UnreadableCopy[] {
+  const copies: UnreadableCopy[] = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (!key?.startsWith(UNREADABLE_PREFIX)) continue
+    try {
+      copies.push({ key, ...(JSON.parse(localStorage.getItem(key)!) as Omit<UnreadableCopy, 'key'>) })
+    } catch {
+      // Ignore a damaged copy entry rather than break the app over it.
+    }
+  }
+  return copies.sort((a, b) => a.savedAt.localeCompare(b.savedAt))
+}
+
+export function discardUnreadableCopy(key: string): void {
+  if (key.startsWith(UNREADABLE_PREFIX)) localStorage.removeItem(key)
+}
+
 export function save(data: AppData): void {
+  if (saveBlocked) return
   const env: Envelope = { version: SCHEMA_VERSION, data }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(env))
 }
@@ -63,14 +124,7 @@ export function exportJSON(data: AppData): string {
 
 /** Parse a backup file. Throws on anything that doesn't look like ours. */
 export function importJSON(text: string): AppData {
-  const env = JSON.parse(text) as Partial<Envelope>
-  if (typeof env !== 'object' || env === null || typeof env.version !== 'number' || !env.data) {
-    throw new Error('Not a Cooking Site backup file')
-  }
-  if (env.version > SCHEMA_VERSION) {
-    throw new Error(`Backup is from a newer version (${env.version}); this app supports up to ${SCHEMA_VERSION}`)
-  }
-  return migrate(env as Envelope)
+  return parse(text)
 }
 
 export function newId(): string {

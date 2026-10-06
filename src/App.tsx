@@ -1,6 +1,7 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router'
 import { StoreProvider } from './store'
 import { Nav } from './components/Nav'
+import { UnreadableDataBanner } from './components/UnreadableDataBanner'
 import { RecipesPage } from './pages/Recipes'
 import { RecipeDetailPage } from './pages/RecipeDetail'
 import { RecipeFormPage } from './pages/RecipeForm'
@@ -17,6 +18,7 @@ export default function App() {
     <StoreProvider>
       <HashRouter>
         <Nav />
+        <UnreadableDataBanner />
         <Routes>
           <Route path="/" element={<Navigate to="/recipes" replace />} />
           <Route path="/recipes" element={<RecipesPage />} />

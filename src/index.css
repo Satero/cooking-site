@@ -665,6 +665,17 @@ select:disabled {
   border-top: 1px solid var(--border);
 }
 
+/* Unreadable-data banner */
+.unreadable-copy + .unreadable-copy {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.page + .page {
+  padding-top: 0;
+}
+
 /* Paste box */
 .paste-open {
   font-size: 0.9rem;

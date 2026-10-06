@@ -121,6 +121,7 @@ A personal cooking app with five pages — Recipes, Learnings, Schedule, Shoppin
 - A recipe's single `sourceUrl` became a `sourceUrls` list: a recipe often comes from a blog post *and* a video. The form edits it like the ingredient rows; the detail page links each one by site name ("seriouseats.com ↗"), since several "Source ↗" links would be indistinguishable. URL-only for now; per-link labels were considered and deferred as clutter on a phone.
 - **First reshaping schema bump (v3)**, so `migrate()` got its first real step. Old backups and stored data upgrade automatically; a v3 backup is refused by a not-yet-updated v2 app (the phone until it restarts), which is the intended safety check.
 - Links render only for `http`/`https`. Backups now move between devices, so a crafted or corrupted file could otherwise plant a clickable `javascript:` link.
+- **Unreadable data is kept, not overwritten.** Found while adding the migration: if loading ever failed, the app started empty and immediately saved that over the real data. A migration bug on the phone would have silently wiped it. Now the original is copied to its own key first, a banner offers it as a download, and data from a newer app version is treated as unreadable instead of being half-read and saved back with fields missing.
 
 ## Future improvements (v1.x)
 

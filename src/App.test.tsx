@@ -187,6 +187,37 @@ describe('Cooking', () => {
   })
 })
 
+describe('Unreadable saved data', () => {
+  it('warns, offers the original for download, and only discards it after confirming', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const future = JSON.stringify({ version: 99, data: sampleData() })
+    localStorage.setItem('cooking-site:data', future)
+    const createObjectURL = vi.fn((_blob: Blob) => 'blob:copy')
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() }))
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true)
+    const { user } = renderAt('/recipes')
+
+    const alert = screen.getByRole('alert')
+    expect(within(alert).getByText(/newer version/)).toBeInTheDocument()
+
+    await user.click(within(alert).getByRole('button', { name: 'Download copy' }))
+    expect(await createObjectURL.mock.calls[0][0].text()).toBe(future)
+
+    // Cancel keeps it; confirm discards it and the banner goes away
+    await user.click(within(alert).getByRole('button', { name: 'Discard copy' }))
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    await user.click(within(alert).getByRole('button', { name: 'Discard copy' }))
+    expect(confirmSpy).toHaveBeenCalledTimes(2)
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('shows nothing when data loads fine', () => {
+    save(sampleData())
+    renderAt('/recipes')
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+})
+
 describe('Settings', () => {
   function importFile(contents: string) {
     const input = document.querySelector<HTMLInputElement>('input[type="file"]')!

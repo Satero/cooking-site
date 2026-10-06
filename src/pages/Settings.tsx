@@ -3,6 +3,7 @@ import { Page } from '../components/Page'
 import { useStore } from '../useStore'
 import { emptyData, exportJSON, importJSON, todayISO } from '../storage'
 import { sampleData } from '../data/sample'
+import { downloadText } from '../download'
 
 export function SettingsPage() {
   const { data, replace } = useStore()
@@ -10,13 +11,7 @@ export function SettingsPage() {
   const [message, setMessage] = useState<string | null>(null)
 
   function download() {
-    const blob = new Blob([exportJSON(data)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `cooking-site-backup-${todayISO()}.json`
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadText(`cooking-site-backup-${todayISO()}.json`, exportJSON(data))
   }
 
   async function onImportFile(e: React.ChangeEvent<HTMLInputElement>) {

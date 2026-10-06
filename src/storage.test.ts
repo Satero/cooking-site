@@ -1,5 +1,15 @@
-import { describe, expect, it, vi } from 'vitest'
-import { SCHEMA_VERSION, emptyData, exportJSON, importJSON, load, save, todayISO } from './storage'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  SCHEMA_VERSION,
+  discardUnreadableCopy,
+  emptyData,
+  exportJSON,
+  importJSON,
+  load,
+  save,
+  todayISO,
+  unreadableCopies,
+} from './storage'
 import { sampleData } from './data/sample'
 
 const KEY = 'cooking-site:data'
@@ -20,6 +30,70 @@ describe('load / save', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     localStorage.setItem(KEY, '{not json')
     expect(load()).toEqual(emptyData())
+  })
+})
+
+describe('unreadable data is never silently destroyed', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  it('keeps a copy of data that fails to load before starting empty', () => {
+    localStorage.setItem(KEY, '{not json')
+    expect(load()).toEqual(emptyData())
+
+    const [copy] = unreadableCopies()
+    expect(copy.raw).toBe('{not json')
+    expect(copy.error).toBeTruthy()
+
+    // The store then saves empty data over the original; the copy survives.
+    save(emptyData())
+    expect(unreadableCopies()[0].raw).toBe('{not json')
+  })
+
+  it('treats data from a newer app version as unreadable instead of guessing', () => {
+    const future = JSON.stringify({ version: SCHEMA_VERSION + 1, data: sampleData() })
+    localStorage.setItem(KEY, future)
+    expect(load()).toEqual(emptyData())
+    expect(unreadableCopies()[0]).toMatchObject({ raw: future, error: expect.stringMatching(/newer version/) })
+  })
+
+  it('makes no copy when there was nothing stored', () => {
+    load()
+    expect(unreadableCopies()).toEqual([])
+  })
+
+  it('keeps every copy rather than overwriting an older one', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 1, 9))
+    localStorage.setItem(KEY, 'first')
+    load()
+    vi.setSystemTime(new Date(2026, 9, 2, 9))
+    localStorage.setItem(KEY, 'second')
+    load()
+    expect(unreadableCopies().map((c) => c.raw)).toEqual(['first', 'second'])
+  })
+
+  it('discards a copy on request', () => {
+    localStorage.setItem(KEY, 'bad')
+    load()
+    discardUnreadableCopy(unreadableCopies()[0].key)
+    expect(unreadableCopies()).toEqual([])
+  })
+
+  it('refuses to save if it could not keep a copy (e.g. storage full)', async () => {
+    vi.resetModules() // fresh module state: saveBlocked starts false
+    const storage = await import('./storage')
+    localStorage.setItem(KEY, 'bad')
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError')
+    })
+    storage.load()
+    setItem.mockRestore()
+
+    expect(storage.isSaveBlocked()).toBe(true)
+    storage.save(storage.emptyData())
+    expect(localStorage.getItem(KEY)).toBe('bad')
   })
 })
 
